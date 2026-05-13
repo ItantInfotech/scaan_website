@@ -1,0 +1,195 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens — see SPEC.md §3.1 for the canonical table.
+ * Navy and red hex codes are placeholders inferred from "navy & red like the
+ * logo" — confirm with client before production (SPEC.md §16.1).
+ */
+:root {
+  /* Surfaces */
+  --bg: #ffffff;
+  --bg-elev: #f7f8fb;
+  --bg-elev-2: #eef1f6;
+
+  /* Brand — navy carries ~80% of accent work */
+  --navy: #0e2452;
+  --navy-hi: #1b3870;
+  --navy-soft: #4863a0;
+
+  /* Brand — red is punctuation only (~20%); never large fills */
+  --red: #b12a2f;
+  --red-hi: #d14045;
+  --red-soft: #e68185;
+
+  /* Ink (text) */
+  --ink: #0e1116;
+  --ink-dim: #4d505a;
+  --ink-mute: #8a8d95;
+
+  /* Hairlines — used for the 1px grid-gap divider trick on card grids */
+  --line: rgba(14, 36, 82, 0.12);
+  --line-hi: rgba(14, 36, 82, 0.26);
+
+  /* Indian tricolor — Made-in-India badge only. National symbol; do not re-color. */
+  --tri-saffron: #ff9933;
+  --tri-white: #ffffff;
+  --tri-green: #138808;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-elev: var(--bg-elev);
+  --color-bg-elev-2: var(--bg-elev-2);
+
+  --color-navy: var(--navy);
+  --color-navy-hi: var(--navy-hi);
+  --color-navy-soft: var(--navy-soft);
+
+  --color-red: var(--red);
+  --color-red-hi: var(--red-hi);
+  --color-red-soft: var(--red-soft);
+
+  --color-ink: var(--ink);
+  --color-ink-dim: var(--ink-dim);
+  --color-ink-mute: var(--ink-mute);
+
+  --color-line: var(--line);
+  --color-line-hi: var(--line-hi);
+
+  --font-serif: var(--font-fraunces);
+  --font-sans: var(--font-manrope);
+  --font-mono: var(--font-jetbrains);
+
+  --container-wrap: 1320px;
+}
+
+/*
+ * html provides the white base so <TopoBg>'s gradients + topo SVG can show
+ * through any section that doesn't set its own background.
+ */
+html {
+  background: var(--bg);
+}
+
+body {
+  background: transparent;
+  color: var(--ink);
+}
+
+/* Always-visible navy focus ring — SPEC.md §12 mandates a visible indicator. */
+:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+/*
+ * Button arrow indicator (SPEC.md §4.1). 14px line + 7px arrowhead, all CSS.
+ * Inherits color via currentColor so it works in both navy and white contexts.
+ */
+.arr {
+  display: inline-block;
+  width: 14px;
+  height: 1px;
+  background: currentColor;
+  position: relative;
+  flex-shrink: 0;
+  transition: transform 200ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.arr::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-top: 1px solid currentColor;
+  border-right: 1px solid currentColor;
+  transform: translate(0, -50%) rotate(45deg);
+  transform-origin: 100% 50%;
+}
+
+/* Live-status dot pulse (Stamp, §4.2). Expanding red ring every 2.4s. */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(177, 42, 47, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 9px rgba(177, 42, 47, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(177, 42, 47, 0);
+  }
+}
+
+/* Capabilities marquee (§4.8). Two duplicated tracks scroll left infinitely. */
+@keyframes scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/*
+ * Reveal wrapper (§4.11). Initial state is hidden; .reveal-visible (set by
+ * the shared IntersectionObserver) drives the fade-up. data-delay staggers
+ * sibling reveals in 80ms increments per SPEC.md §7.
+ */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 900ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 900ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.reveal[data-delay="1"] { transition-delay: 80ms; }
+.reveal[data-delay="2"] { transition-delay: 160ms; }
+.reveal[data-delay="3"] { transition-delay: 240ms; }
+.reveal[data-delay="4"] { transition-delay: 320ms; }
+.reveal[data-delay="5"] { transition-delay: 400ms; }
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Reduced motion: skip the fade-up entirely, content is always visible. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/*
+ * Hero H1 sequential fade-up (§7). The three stacked lines animate in at
+ * 0ms / 120ms / 240ms with a 900ms cubic-bezier, on page load (not scroll).
+ */
+@keyframes heroLine {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.hero-line {
+  animation: heroLine 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.hero-line-1 { animation-delay: 0ms; }
+.hero-line-2 { animation-delay: 120ms; }
+.hero-line-3 { animation-delay: 240ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
